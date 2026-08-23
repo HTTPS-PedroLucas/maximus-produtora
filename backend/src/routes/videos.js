@@ -4,6 +4,7 @@ const { requireAuth } = require('../middleware/auth');
 const { parse, domainOf } = require('../lib/validate');
 const activity = require('../lib/activity');
 const { upload, removeStoredFile } = require('../middleware/upload');
+const { generateScriptDoc } = require('../lib/scriptDoc');
 
 const router = express.Router();
 
@@ -13,7 +14,8 @@ router.use(requireAuth);
 function loadVideo(workspaceId, videoId) {
   return db
     .prepare(
-      `SELECT v.*, s.workspace_id, s.id AS capture_id, c.name AS client_name
+      `SELECT v.*, s.workspace_id, s.id AS capture_id, c.name AS client_name,
+              s.date AS capture_date, s.start_time AS capture_start_time
          FROM video_ideas v
          JOIN capture_schedules s ON s.id = v.capture_id
          JOIN clients c ON c.id = s.client_id
@@ -64,9 +66,61 @@ function touchCapture(captureId, userId) {
     .run(userId, captureId);
 }
 
+/**
+ * Mantém o documento .docx em sincronia com o roteiro digitado.
+ * Roteiro preenchido gera (ou regera) o arquivo; roteiro apagado remove o
+ * documento. O arquivo antigo é sempre descartado para não acumular lixo.
+ */
+async function syncScriptDoc(workspaceId, videoId) {
+  const video = loadVideo(workspaceId, videoId);
+  if (!video) return;
+
+  const previousUrl = video.script_doc_url;
+  const hasScript = Boolean(video.script && video.script.trim());
+
+  if (!hasScript) {
+    if (previousUrl) {
+      db.prepare(
+        `UPDATE video_ideas
+            SET script_doc_url = NULL, script_doc_name = NULL,
+                script_doc_size_bytes = NULL, script_doc_updated_at = NULL
+          WHERE id = ?`
+      ).run(videoId);
+      removeStoredFile(previousUrl);
+    }
+    return;
+  }
+
+  const order = db
+    .prepare('SELECT id FROM video_ideas WHERE capture_id = ? ORDER BY position, id')
+    .all(video.capture_id)
+    .map((row) => row.id);
+
+  const generated = await generateScriptDoc({
+    number: order.indexOf(video.id) + 1,
+    title: video.title,
+    script: video.script,
+    notes: video.notes,
+    clientName: video.client_name,
+    date: video.capture_date,
+    startTime: video.capture_start_time,
+  });
+
+  if (!generated) return;
+
+  db.prepare(
+    `UPDATE video_ideas
+        SET script_doc_url = ?, script_doc_name = ?, script_doc_size_bytes = ?,
+            script_doc_updated_at = datetime('now')
+      WHERE id = ?`
+  ).run(generated.url, generated.name, generated.size, videoId);
+
+  if (previousUrl && previousUrl !== generated.url) removeStoredFile(previousUrl);
+}
+
 // --- Vídeos ---------------------------------------------------------------
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const captureId = Number(req.body?.capture_id);
   const capture = loadCapture(req.workspaceId, captureId);
   if (!capture) return res.status(404).json({ error: 'Captação não encontrada.' });
@@ -87,7 +141,10 @@ router.post('/', (req, res) => {
     )
     .run(captureId, nextPosition, data.title, data.script, data.notes, req.user.id, req.user.id);
 
-  const video = serialize(Number(info.lastInsertRowid));
+  const videoId = Number(info.lastInsertRowid);
+  await syncScriptDoc(req.workspaceId, videoId);
+
+  const video = serialize(videoId);
   touchCapture(captureId, req.user.id);
 
   activity.log({
@@ -102,7 +159,7 @@ router.post('/', (req, res) => {
   res.status(201).json(video);
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   const current = loadVideo(req.workspaceId, req.params.id);
   if (!current) return res.status(404).json({ error: 'Vídeo não encontrado.' });
 
@@ -116,6 +173,9 @@ router.put('/:id', (req, res) => {
     `UPDATE video_ideas SET title = ?, script = ?, notes = ?, updated_by = ?, updated_at = datetime('now')
       WHERE id = ?`
   ).run(data.title, data.script, data.notes, req.user.id, current.id);
+
+  // O documento do roteiro acompanha o texto: é regerado a cada alteração.
+  await syncScriptDoc(req.workspaceId, current.id);
 
   touchCapture(current.capture_id, req.user.id);
 
@@ -168,7 +228,7 @@ router.patch('/:id/done', (req, res) => {
   });
 });
 
-router.post('/:id/duplicate', (req, res) => {
+router.post('/:id/duplicate', async (req, res) => {
   const current = loadVideo(req.workspaceId, req.params.id);
   if (!current) return res.status(404).json({ error: 'Vídeo não encontrado.' });
 
@@ -206,6 +266,9 @@ router.post('/:id/duplicate', (req, res) => {
   for (const file of files) {
     insertFile.run(newId, file.file_url, file.file_name, file.mime_type, file.size_bytes, req.user.id);
   }
+
+  // A cópia ganha o próprio documento — os dois não compartilham arquivo.
+  await syncScriptDoc(req.workspaceId, newId);
 
   touchCapture(current.capture_id, req.user.id);
 
@@ -265,6 +328,9 @@ router.delete('/:id', (req, res) => {
       .get(file.file_url).total;
     if (stillUsed === 0) removeStoredFile(file.file_url);
   }
+
+  // O documento do roteiro é exclusivo deste vídeo.
+  if (current.script_doc_url) removeStoredFile(current.script_doc_url);
 
   touchCapture(current.capture_id, req.user.id);
 

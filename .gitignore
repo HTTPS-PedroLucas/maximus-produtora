@@ -10,6 +10,7 @@ backend/backups/
 backend/uploads/logos/*
 backend/uploads/avatars/*
 backend/uploads/videos/*
+backend/uploads/scripts/*
 !backend/uploads/**/.gitkeep
 
 # Segredos: nunca versionar as chaves reais, só os .env.example

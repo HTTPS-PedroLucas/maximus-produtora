@@ -528,3 +528,95 @@ table.data tr.is-inactive td { opacity: 0.55; }
 .theme-preview-light { background: #f2f0f6; }
 .theme-preview-light .theme-preview-line { background: #d8cfe6; }
 .theme-preview-light .theme-preview-line.short { background: #e6dff0; }
+
+
+/* --- Roteiro e documento gerado ------------------------------------------ */
+
+.script-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.script-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.script-block .textarea {
+  min-height: 150px;
+}
+
+/* Documento .docx gerado automaticamente a partir do roteiro. */
+.script-doc {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--brand-magenta);
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
+}
+
+.script-doc.is-pending {
+  border-left-color: var(--border-strong);
+  color: var(--text-secondary);
+}
+
+.script-doc-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: var(--radius-xs);
+  background: var(--brand-gradient-soft);
+  color: var(--brand-pink-on-dark);
+}
+
+.script-doc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.script-doc-info strong {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Roteiro em tela cheia: o texto ocupa toda a área disponível. */
+.script-fullscreen {
+  height: 100%;
+  padding-bottom: var(--space-4);
+}
+
+.script-fullscreen-text {
+  height: 100%;
+  min-height: 340px;
+  resize: none;
+  font-size: var(--text-md);
+  line-height: 1.75;
+  padding: var(--space-4) var(--space-5);
+}
+
+@media (max-width: 640px) {
+  .modal-full {
+    height: 100vh;
+    max-width: 100%;
+    border-radius: 0;
+  }
+
+  .script-fullscreen-text {
+    font-size: var(--text-base);
+    padding: var(--space-3);
+  }
+}

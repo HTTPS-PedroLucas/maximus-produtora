@@ -206,6 +206,45 @@ test('vídeos são numerados automaticamente e aceitam só roteiro ou só link',
   assert.strictEqual(link.data.references[0].domain, 'instagram.com');
 });
 
+test('o documento .docx do roteiro é gerado, atualizado e removido sozinho', async () => {
+  // Vídeo sem roteiro não tem documento.
+  const vazio = await call('POST', '/videos', { token: memberToken, body: { capture_id: captureId } });
+  assert.strictEqual(vazio.data.script_doc_url, null);
+  const id = vazio.data.id;
+
+  // Ao salvar o roteiro, o documento nasce junto.
+  const comRoteiro = await call('PUT', `/videos/${id}`, {
+    token: memberToken,
+    body: { title: 'Campanha', script: 'ABERTURA\n\nFala da farmacêutica.' },
+  });
+  assert.match(comRoteiro.data.script_doc_url, /^\/uploads\/scripts\/.+\.docx$/);
+  assert.match(comRoteiro.data.script_doc_name, /^Roteiro_Video-\d{2}_.*\.docx$/);
+  assert.ok(comRoteiro.data.script_doc_size_bytes > 0);
+
+  // O arquivo existe em disco e é um .docx de verdade (zip começa com "PK").
+  const caminho = path.join(process.env.UPLOADS_DIR, comRoteiro.data.script_doc_url.replace('/uploads/', ''));
+  assert.ok(fs.existsSync(caminho));
+  assert.strictEqual(fs.readFileSync(caminho).subarray(0, 2).toString('latin1'), 'PK');
+
+  // Editar o roteiro troca o documento e descarta o arquivo anterior.
+  const anterior = comRoteiro.data.script_doc_url;
+  const editado = await call('PUT', `/videos/${id}`, {
+    token: memberToken,
+    body: { title: 'Campanha', script: 'ABERTURA\n\nNova versão da fala.' },
+  });
+  assert.notStrictEqual(editado.data.script_doc_url, anterior);
+  assert.ok(!fs.existsSync(path.join(process.env.UPLOADS_DIR, anterior.replace('/uploads/', ''))));
+
+  // Apagar o roteiro remove o documento.
+  const semRoteiro = await call('PUT', `/videos/${id}`, {
+    token: memberToken,
+    body: { title: 'Campanha', script: '' },
+  });
+  assert.strictEqual(semRoteiro.data.script_doc_url, null);
+
+  await call('DELETE', `/videos/${id}`, { token: memberToken });
+});
+
 test('progresso da captação acompanha os vídeos concluídos', async () => {
   const marcado = await call('PATCH', `/videos/${videoId}/done`, { token: memberToken, body: { done: true } });
   assert.strictEqual(marcado.data.progress.done, 1);
