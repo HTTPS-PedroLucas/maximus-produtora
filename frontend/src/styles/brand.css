@@ -1,0 +1,286 @@
+/* ==========================================================================
+   Elementos da marca: logo, símbolo, raio, iluminação e fundos.
+   A iluminação é feita com gradientes radiais em CSS (sem imagens pesadas).
+   ========================================================================== */
+
+/* Em contêineres flex em coluna, 'align-items: stretch' estica imagens com
+   largura automática — o 'align-self' abaixo protege a proporção da logo. */
+.brand-logo {
+  display: block;
+  width: auto;
+  height: 34px;
+  max-width: 100%;
+  align-self: flex-start;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.brand-logo-sm { height: 26px; }
+.brand-logo-lg { height: 52px; }
+.brand-logo-xl { height: 72px; }
+
+.brand-symbol {
+  display: block;
+  width: 30px;
+  height: auto;
+  align-self: center;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.brand-symbol-sm { width: 22px; }
+.brand-symbol-lg { width: 44px; }
+
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+}
+
+.brand-lockup:hover {
+  text-decoration: none;
+}
+
+/* --- Raio ---------------------------------------------------------------- */
+
+img.brand-ray {
+  display: block;
+  width: auto;
+  height: 40px;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Marca d'água: sempre no fundo, com opacidade baixa e nunca sobre texto pequeno. */
+img.brand-ray-watermark {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  opacity: 0.06;
+}
+
+img.brand-ray-watermark.is-subtle { opacity: 0.035; }
+img.brand-ray-watermark.is-visible { opacity: 0.1; }
+
+/* --- Iluminação ---------------------------------------------------------- */
+
+.brand-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+}
+
+.brand-bg > * {
+  position: absolute;
+}
+
+.brand-glow {
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.brand-glow-purple { background: var(--glow-purple); }
+.brand-glow-magenta { background: var(--glow-magenta); }
+.brand-glow-coral { background: var(--glow-coral); }
+
+/* Vinheta usada nas telas mais expressivas (login e cabeçalhos). */
+.brand-vignette {
+  position: absolute;
+  inset: 0;
+  background: var(--vignette);
+  pointer-events: none;
+}
+
+/* Linha fina em gradiente — assinatura discreta em topos de seção. */
+.brand-line {
+  height: 2px;
+  width: 100%;
+  background: var(--brand-gradient-line);
+  border-radius: var(--radius-pill);
+}
+
+.brand-line-v {
+  width: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-gradient-line);
+}
+
+/* Superfície com iluminação suave no topo — cabeçalhos de página. */
+.brand-surface {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(90% 140% at 8% -30%, var(--head-light-1) 0%, transparent 60%),
+    radial-gradient(70% 130% at 92% -20%, var(--head-light-2) 0%, transparent 62%),
+    var(--surface);
+}
+
+.brand-surface > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Cabeçalho de página ------------------------------------------------- */
+
+.page-head {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  background:
+    radial-gradient(80% 160% at 0% -40%, var(--head-light-1) 0%, transparent 58%),
+    radial-gradient(60% 140% at 100% -30%, var(--head-light-2) 0%, transparent 60%),
+    var(--surface);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.page-head::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--brand-gradient-line);
+  opacity: 0.85;
+}
+
+.page-head > * {
+  position: relative;
+  z-index: 1;
+}
+
+.page-head-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.page-head-titles h1 {
+  font-family: var(--font-display);
+  font-size: var(--display-md);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.page-head-titles p {
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  max-width: 62ch;
+}
+
+.page-head-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Cabeçalho de seção interna */
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.section-head .section-bar {
+  width: 3px;
+  height: 18px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-gradient-line);
+  flex-shrink: 0;
+}
+
+.section-head h2,
+.section-head h3 {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.section-head p {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+/* --- Cartão de métrica --------------------------------------------------- */
+
+.metric-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--brand-gradient-line);
+  opacity: 0.9;
+}
+
+.metric-card.is-plain::before {
+  background: var(--border-strong);
+}
+
+.metric-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.metric-value {
+  font-family: var(--font-display);
+  font-size: var(--display-md);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+}
+
+.metric-card.is-highlight .metric-value {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.metric-label {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.metric-extra {
+  font-size: var(--text-xs);
+  color: var(--text-disabled);
+}
+
+.metric-card .progress {
+  margin-top: 8px;
+}

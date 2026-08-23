@@ -1,0 +1,24 @@
+# Dependências (reinstaladas com npm install)
+node_modules/
+
+# Build de produção do frontend (gerado com npm run build)
+frontend/dist/
+
+# Banco de dados, uploads reais e backups — dados de trabalho, não código
+backend/data/
+backend/backups/
+backend/uploads/logos/*
+backend/uploads/avatars/*
+backend/uploads/videos/*
+!backend/uploads/**/.gitkeep
+
+# Segredos: nunca versionar as chaves reais, só os .env.example
+.env
+.env.local
+*.env
+
+# Sistema operacional / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

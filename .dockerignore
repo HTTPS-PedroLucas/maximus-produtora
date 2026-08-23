@@ -1,0 +1,7 @@
+**/node_modules
+**/dist
+**/.env
+backend/data
+backend/backups
+backend/uploads
+docs/screenshots

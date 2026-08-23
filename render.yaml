@@ -1,0 +1,38 @@
+# Publicação no Render (https://render.com) — "Blueprint".
+# O disco persistente guarda o banco e as imagens; sem ele os dados somem
+# a cada nova versão, então este serviço precisa de um plano com disco.
+services:
+  - type: web
+    name: maximus-produtora
+    runtime: node
+    rootDir: maximus
+    plan: starter
+    region: oregon
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: false
+    disk:
+      name: maximus-dados
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: SERVE_FRONTEND
+        value: "1"
+      - key: DATA_DIR
+        value: /var/data/db
+      - key: UPLOADS_DIR
+        value: /var/data/uploads
+      - key: TIMEZONE
+        value: America/Fortaleza
+      - key: JWT_SECRET
+        generateValue: true
+      # Primeiro administrador — criado só se o banco estiver vazio.
+      - key: ADMIN_NAME
+        value: Administração Máximus
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false

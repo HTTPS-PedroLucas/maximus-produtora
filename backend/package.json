@@ -1,0 +1,27 @@
+{
+  "name": "maximus-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API do sistema de planejamento de captações da Máximus Produtora",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "migrate": "node src/scripts/migrate.js",
+    "seed": "node src/scripts/seed.js",
+    "seed:demo": "node src/scripts/seed-demo.js",
+    "test": "node --test \"tests/**/*.test.js\"",
+    "backup": "node src/scripts/backup.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.2.0"
+  }
+}

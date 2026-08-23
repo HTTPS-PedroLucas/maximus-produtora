@@ -1,0 +1,211 @@
+/* ==========================================================================
+   Máximus Produtora — tokens da identidade visual
+   Único lugar onde cores, gradientes, tipografia, raios e sombras são definidos.
+   Nenhum componente deve escrever hexadecimais soltos.
+
+   O tema escuro é o padrão da marca; o tema claro é uma opção da equipe
+   (Configurações → Aparência) e redefine apenas os tokens desta folha.
+   ========================================================================== */
+
+:root {
+  /* --- Cores da marca (iguais nos dois temas) ---------------------------- */
+  --brand-purple: #a803d2;
+  --brand-violet: #8500c8;
+  --brand-magenta: #d31397;
+  --brand-pink: #e71983;
+  --brand-coral: #f92657;
+  --brand-red: #ff294f;
+
+  /* Assinatura da marca — usada em barras, linhas, títulos e detalhes. */
+  --brand-gradient: linear-gradient(135deg, #a803d2 0%, #d31397 52%, #f92657 100%);
+  /* Mesma família, levemente mais profunda: garante contraste AA do texto
+     branco em botões preenchidos (o coral puro fica em 3.9:1). */
+  --brand-gradient-button: linear-gradient(135deg, #9d03c6 0%, #c8118f 52%, #d91e52 100%);
+  /* Tom rosa legível como texto/ícone sobre superfícies escuras (5.7:1). */
+  --brand-pink-on-dark: #f0559f;
+  --brand-gradient-soft: linear-gradient(135deg, rgba(168, 3, 210, 0.16) 0%, rgba(211, 19, 151, 0.14) 52%, rgba(249, 38, 87, 0.12) 100%);
+  --brand-gradient-line: linear-gradient(90deg, #a803d2 0%, #d31397 52%, #f92657 100%);
+
+  /* --- Superfícies (tema escuro) ----------------------------------------- */
+  --background: #08070b;
+  --background-2: #0e0c12;
+  --surface: #151219;
+  --surface-elevated: #1c1721;
+  --surface-interactive: #241c2a;
+  --border: #33283a;
+  --border-strong: #453551;
+
+  /* --- Texto ------------------------------------------------------------- */
+  --text-primary: #f8f5f9;
+  --text-secondary: #b7adb9;
+  --text-disabled: #8b8090;
+  --white: #ffffff;
+
+  /* --- Sobreposições dependentes do tema --------------------------------- */
+  --overlay-soft: rgba(8, 7, 11, 0.45);
+  --overlay-strong: rgba(8, 7, 11, 0.82);
+  --backdrop: rgba(4, 3, 6, 0.72);
+  --bar-bg: rgba(14, 12, 18, 0.92);
+  --vignette: radial-gradient(125% 95% at 50% 0%, transparent 48%, rgba(8, 7, 11, 0.6) 100%);
+  --glow-purple: radial-gradient(circle, rgba(168, 3, 210, 0.55) 0%, rgba(168, 3, 210, 0) 70%);
+  --glow-magenta: radial-gradient(circle, rgba(211, 19, 151, 0.5) 0%, rgba(211, 19, 151, 0) 70%);
+  --glow-coral: radial-gradient(circle, rgba(249, 38, 87, 0.38) 0%, rgba(249, 38, 87, 0) 70%);
+  --glow-strength: 1;
+  --head-light-1: rgba(168, 3, 210, 0.22);
+  --head-light-2: rgba(249, 38, 87, 0.14);
+
+  /* --- Cores semânticas (não usam o gradiente da marca) ------------------ */
+  --success: #34d399;
+  --success-strong: #10b981;
+  --success-soft: rgba(52, 211, 153, 0.12);
+  --success-border: rgba(52, 211, 153, 0.32);
+
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.12);
+  --warning-border: rgba(251, 191, 36, 0.3);
+
+  --danger: #f2545b;
+  --danger-strong: #dc2f37;
+  --danger-soft: rgba(242, 84, 91, 0.12);
+  --danger-border: rgba(242, 84, 91, 0.34);
+
+  --info: #60a5fa;
+  --info-soft: rgba(96, 165, 250, 0.12);
+  --info-border: rgba(96, 165, 250, 0.3);
+
+  /* --- Tipografia -------------------------------------------------------- */
+  --font-display: 'Barlow Condensed', 'Arial Narrow', 'Segoe UI', sans-serif;
+  --font-ui: 'Montserrat', 'Segoe UI', system-ui, -apple-system, sans-serif;
+
+  --text-xs: 0.72rem;
+  --text-sm: 0.8rem;
+  --text-base: 0.875rem;
+  --text-md: 0.95rem;
+  --text-lg: 1.1rem;
+  --display-sm: 1.35rem;
+  --display-md: 1.75rem;
+  --display-lg: 2.3rem;
+  --display-xl: 3rem;
+
+  /* --- Espaçamento ------------------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* --- Raios ------------------------------------------------------------- */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+
+  /* --- Sombras ----------------------------------------------------------- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.55);
+  --glow-brand: 0 0 24px rgba(211, 19, 151, 0.16);
+  --glow-brand-strong: 0 6px 26px rgba(168, 3, 210, 0.32);
+  --glow-focus: 0 0 0 3px rgba(211, 19, 151, 0.32);
+
+  /* --- Estrutura --------------------------------------------------------- */
+  --header-h: 64px;
+  --sidebar-w: 244px;
+  --sidebar-w-collapsed: 76px;
+
+  /* --- Movimento --------------------------------------------------------- */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: 190ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   Tema claro — mesmas cores de marca, superfícies invertidas.
+   ========================================================================== */
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  /* Superfícies */
+  --background: #f2f0f6;
+  --background-2: #f8f6fb;
+  --surface: #ffffff;
+  --surface-elevated: #faf8fd;
+  --surface-interactive: #f0ebf7;
+  --border: #e0d9ea;
+  --border-strong: #c6bad4;
+
+  /* Texto */
+  --text-primary: #17131d;
+  --text-secondary: #564d61;
+  --text-disabled: #7b7185;
+
+  /* Rosa legível sobre branco (4.6:1) */
+  --brand-pink-on-dark: #c2107a;
+
+  /* Sobreposições */
+  --overlay-soft: rgba(23, 19, 29, 0.06);
+  --overlay-strong: rgba(23, 19, 29, 0.72);
+  --backdrop: rgba(30, 24, 38, 0.4);
+  --bar-bg: rgba(248, 246, 251, 0.92);
+  --vignette: radial-gradient(125% 95% at 50% 0%, transparent 55%, rgba(23, 19, 29, 0.08) 100%);
+
+  /* A iluminação da marca fica bem mais discreta no claro */
+  --glow-purple: radial-gradient(circle, rgba(168, 3, 210, 0.2) 0%, rgba(168, 3, 210, 0) 70%);
+  --glow-magenta: radial-gradient(circle, rgba(211, 19, 151, 0.18) 0%, rgba(211, 19, 151, 0) 70%);
+  --glow-coral: radial-gradient(circle, rgba(249, 38, 87, 0.14) 0%, rgba(249, 38, 87, 0) 70%);
+  --glow-strength: 0.7;
+  --head-light-1: rgba(168, 3, 210, 0.09);
+  --head-light-2: rgba(249, 38, 87, 0.07);
+
+  /* Semânticas escurecidas para manter AA sobre branco */
+  --success: #0f7a4f;
+  --success-strong: #0f7a4f;
+  --success-soft: rgba(15, 122, 79, 0.1);
+  --success-border: rgba(15, 122, 79, 0.28);
+
+  --warning: #96590a;
+  --warning-soft: rgba(150, 89, 10, 0.1);
+  --warning-border: rgba(150, 89, 10, 0.26);
+
+  --danger: #c02730;
+  --danger-strong: #c02730;
+  --danger-soft: rgba(192, 39, 48, 0.09);
+  --danger-border: rgba(192, 39, 48, 0.28);
+
+  --info: #1f66d0;
+  --info-soft: rgba(31, 102, 208, 0.09);
+  --info-border: rgba(31, 102, 208, 0.26);
+
+  /* Sombras suaves */
+  --shadow-sm: 0 1px 2px rgba(23, 19, 29, 0.06);
+  --shadow: 0 8px 24px rgba(23, 19, 29, 0.1);
+  --shadow-lg: 0 24px 60px rgba(23, 19, 29, 0.16);
+  --glow-brand: 0 2px 10px rgba(211, 19, 151, 0.18);
+  --glow-brand-strong: 0 6px 20px rgba(168, 3, 210, 0.24);
+  --glow-focus: 0 0 0 3px rgba(211, 19, 151, 0.22);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 1ms;
+    --transition: 1ms;
+    --transition-slow: 1ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
