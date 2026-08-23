@@ -5,7 +5,6 @@ services:
   - type: web
     name: maximus-produtora
     runtime: node
-    rootDir: maximus
     plan: starter
     region: oregon
     buildCommand: npm run build
