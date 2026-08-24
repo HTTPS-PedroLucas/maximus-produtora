@@ -3,6 +3,7 @@ data/
 uploads/logos/*
 uploads/avatars/*
 uploads/videos/*
+uploads/scripts/*
 !uploads/**/.gitkeep
 .env
 backups/

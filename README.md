@@ -218,11 +218,32 @@ O bucket local fica em `backend/uploads`, separado por finalidade:
 
 - `uploads/logos` — logotipos dos clientes;
 - `uploads/avatars` — fotos da equipe;
-- `uploads/videos` — imagens de apoio dos vídeos.
+- `uploads/videos` — imagens de apoio dos vídeos;
+- `uploads/scripts` — documentos `.docx` dos roteiros, gerados pelo sistema.
 
 Formatos aceitos: PNG, JPG, WEBP, GIF e SVG, até `MAX_UPLOAD_MB` (8 MB por padrão). Os arquivos são servidos em
 `/uploads/...` e removidos do disco quando a imagem é excluída (respeitando vídeos duplicados que apontam para o
 mesmo arquivo).
+
+> A pasta `scripts` não aceita envio manual: ela é escrita apenas pelo próprio sistema ao gerar os
+> documentos dos roteiros.
+
+## Documento do roteiro em Word
+
+Cada vídeo tem um roteiro em texto. Assim que ele é salvo (o salvamento é automático, poucos
+segundos depois de digitar ou colar), o sistema **gera sozinho um arquivo `.docx`** com aquele
+roteiro — sem botão, sem exportar à mão.
+
+- O documento traz cabeçalho com cliente, data e horário da captação, o roteiro com os parágrafos
+  preservados e, quando houver, as observações;
+- O nome sai pronto para arquivar: `Roteiro_Video-01_SOS-Farma_2026-08-24.docx`;
+- Editar o roteiro **regera** o documento e descarta a versão anterior — nunca ficam arquivos soltos;
+- Apagar o roteiro remove o documento;
+- Duplicar um vídeo cria um documento próprio para a cópia.
+
+Na tela da captação, o documento aparece logo abaixo do roteiro, com o botão **Baixar**. O botão
+**Tela cheia** abre o roteiro em uma janela ampla para ler e escrever com conforto — o texto continua
+sendo salvo automaticamente e o documento acompanha.
 
 ## Tempo real
 
@@ -293,7 +314,7 @@ Todas as rotas ficam sob `/api` e exigem o cabeçalho `Authorization: Bearer <to
 
 | Método | Rota | Descrição |
 |---|---|---|
-| POST · PUT · DELETE | `/videos` · `/videos/:id` | Criar, editar (salvamento automático) e excluir |
+| POST · PUT · DELETE | `/videos` · `/videos/:id` | Criar, editar (salvamento automático, gera o `.docx` do roteiro) e excluir |
 | PATCH | `/videos/:id/done` | Concluir / reabrir (sugere concluir a captação) |
 | POST | `/videos/:id/duplicate` | Duplicar |
 | PUT | `/videos/reorder/:captureId` | Reordenar |

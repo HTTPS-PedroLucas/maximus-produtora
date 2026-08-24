@@ -3,6 +3,31 @@ const assert = require('node:assert');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
+const zlib = require('zlib');
+
+/**
+ * Lê o word/document.xml de dentro de um .docx (que é um zip), para conferir
+ * a formatação real do arquivo sem depender de biblioteca extra.
+ */
+function lerDocumentXml(arquivo) {
+  const buffer = fs.readFileSync(arquivo);
+  let pos = 0;
+  while (pos < buffer.length - 4) {
+    if (buffer.readUInt32LE(pos) !== 0x04034b50) break;
+    const metodo = buffer.readUInt16LE(pos + 8);
+    const comprimido = buffer.readUInt32LE(pos + 18);
+    const tamanhoNome = buffer.readUInt16LE(pos + 26);
+    const tamanhoExtra = buffer.readUInt16LE(pos + 28);
+    const nome = buffer.subarray(pos + 30, pos + 30 + tamanhoNome).toString('utf8');
+    const inicio = pos + 30 + tamanhoNome + tamanhoExtra;
+    const dados = buffer.subarray(inicio, inicio + comprimido);
+    if (nome === 'word/document.xml') {
+      return (metodo === 8 ? zlib.inflateRawSync(dados) : dados).toString('utf8');
+    }
+    pos = inicio + comprimido;
+  }
+  throw new Error('word/document.xml não encontrado no .docx');
+}
 
 // Banco e uploads isolados: o teste não toca nos dados de trabalho.
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'maximus-test-'));
@@ -204,6 +229,61 @@ test('vídeos são numerados automaticamente e aceitam só roteiro ou só link',
   });
   assert.strictEqual(link.status, 201);
   assert.strictEqual(link.data.references[0].domain, 'instagram.com');
+});
+
+test('o documento .docx do roteiro é gerado, atualizado e removido sozinho', async () => {
+  // Vídeo sem roteiro não tem documento.
+  const vazio = await call('POST', '/videos', { token: memberToken, body: { capture_id: captureId } });
+  assert.strictEqual(vazio.data.script_doc_url, null);
+  const id = vazio.data.id;
+
+  // Ao salvar o roteiro, o documento nasce junto.
+  const comRoteiro = await call('PUT', `/videos/${id}`, {
+    token: memberToken,
+    body: { title: 'Campanha', script: 'ABERTURA\n\nFala da farmacêutica.' },
+  });
+  assert.match(comRoteiro.data.script_doc_url, /^\/uploads\/scripts\/.+\.docx$/);
+  assert.match(comRoteiro.data.script_doc_name, /^Roteiro_Video-\d{2}_.*\.docx$/);
+  assert.ok(comRoteiro.data.script_doc_size_bytes > 0);
+
+  // O arquivo existe em disco e é um .docx de verdade (zip começa com "PK").
+  const caminho = path.join(process.env.UPLOADS_DIR, comRoteiro.data.script_doc_url.replace('/uploads/', ''));
+  assert.ok(fs.existsSync(caminho));
+  assert.strictEqual(fs.readFileSync(caminho).subarray(0, 2).toString('latin1'), 'PK');
+
+  // A marcação colada pela equipe vira formatação real: nada de asteriscos
+  // aparecendo no Word.
+  const comMarcacao = await call('PUT', `/videos/${id}`, {
+    token: memberToken,
+    body: { title: 'Campanha', script: '### TÍTULO\n\n**CENA 1**\nFala normal.\n\n- item da lista' },
+  });
+  const docXml = lerDocumentXml(
+    path.join(process.env.UPLOADS_DIR, comMarcacao.data.script_doc_url.replace('/uploads/', ''))
+  );
+  const textos = [...docXml.matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)].map((m) => m[1]).join('\n');
+  assert.ok(!textos.includes('**'), 'os asteriscos de negrito não podem sobrar no documento');
+  assert.ok(!textos.includes('### '), 'a marcação de título não pode sobrar no documento');
+  assert.ok(textos.includes('TÍTULO') && textos.includes('CENA 1'), 'o texto precisa continuar lá');
+  assert.ok(/<w:b\b/.test(docXml), 'o documento precisa ter trechos em negrito de verdade');
+  assert.ok(/<w:numPr>/.test(docXml), 'a lista precisa virar marcador do Word');
+
+  // Editar o roteiro troca o documento e descarta o arquivo anterior.
+  const anterior = comMarcacao.data.script_doc_url;
+  const editado = await call('PUT', `/videos/${id}`, {
+    token: memberToken,
+    body: { title: 'Campanha', script: 'ABERTURA\n\nNova versão da fala.' },
+  });
+  assert.notStrictEqual(editado.data.script_doc_url, anterior);
+  assert.ok(!fs.existsSync(path.join(process.env.UPLOADS_DIR, anterior.replace('/uploads/', ''))));
+
+  // Apagar o roteiro remove o documento.
+  const semRoteiro = await call('PUT', `/videos/${id}`, {
+    token: memberToken,
+    body: { title: 'Campanha', script: '' },
+  });
+  assert.strictEqual(semRoteiro.data.script_doc_url, null);
+
+  await call('DELETE', `/videos/${id}`, { token: memberToken });
 });
 
 test('progresso da captação acompanha os vídeos concluídos', async () => {
