@@ -3,6 +3,31 @@ const assert = require('node:assert');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
+const zlib = require('zlib');
+
+/**
+ * Lê o word/document.xml de dentro de um .docx (que é um zip), para conferir
+ * a formatação real do arquivo sem depender de biblioteca extra.
+ */
+function lerDocumentXml(arquivo) {
+  const buffer = fs.readFileSync(arquivo);
+  let pos = 0;
+  while (pos < buffer.length - 4) {
+    if (buffer.readUInt32LE(pos) !== 0x04034b50) break;
+    const metodo = buffer.readUInt16LE(pos + 8);
+    const comprimido = buffer.readUInt32LE(pos + 18);
+    const tamanhoNome = buffer.readUInt16LE(pos + 26);
+    const tamanhoExtra = buffer.readUInt16LE(pos + 28);
+    const nome = buffer.subarray(pos + 30, pos + 30 + tamanhoNome).toString('utf8');
+    const inicio = pos + 30 + tamanhoNome + tamanhoExtra;
+    const dados = buffer.subarray(inicio, inicio + comprimido);
+    if (nome === 'word/document.xml') {
+      return (metodo === 8 ? zlib.inflateRawSync(dados) : dados).toString('utf8');
+    }
+    pos = inicio + comprimido;
+  }
+  throw new Error('word/document.xml não encontrado no .docx');
+}
 
 // Banco e uploads isolados: o teste não toca nos dados de trabalho.
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'maximus-test-'));
@@ -226,8 +251,24 @@ test('o documento .docx do roteiro é gerado, atualizado e removido sozinho', as
   assert.ok(fs.existsSync(caminho));
   assert.strictEqual(fs.readFileSync(caminho).subarray(0, 2).toString('latin1'), 'PK');
 
+  // A marcação colada pela equipe vira formatação real: nada de asteriscos
+  // aparecendo no Word.
+  const comMarcacao = await call('PUT', `/videos/${id}`, {
+    token: memberToken,
+    body: { title: 'Campanha', script: '### TÍTULO\n\n**CENA 1**\nFala normal.\n\n- item da lista' },
+  });
+  const docXml = lerDocumentXml(
+    path.join(process.env.UPLOADS_DIR, comMarcacao.data.script_doc_url.replace('/uploads/', ''))
+  );
+  const textos = [...docXml.matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)].map((m) => m[1]).join('\n');
+  assert.ok(!textos.includes('**'), 'os asteriscos de negrito não podem sobrar no documento');
+  assert.ok(!textos.includes('### '), 'a marcação de título não pode sobrar no documento');
+  assert.ok(textos.includes('TÍTULO') && textos.includes('CENA 1'), 'o texto precisa continuar lá');
+  assert.ok(/<w:b\b/.test(docXml), 'o documento precisa ter trechos em negrito de verdade');
+  assert.ok(/<w:numPr>/.test(docXml), 'a lista precisa virar marcador do Word');
+
   // Editar o roteiro troca o documento e descarta o arquivo anterior.
-  const anterior = comRoteiro.data.script_doc_url;
+  const anterior = comMarcacao.data.script_doc_url;
   const editado = await call('PUT', `/videos/${id}`, {
     token: memberToken,
     body: { title: 'Campanha', script: 'ABERTURA\n\nNova versão da fala.' },

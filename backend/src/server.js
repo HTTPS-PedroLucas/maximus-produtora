@@ -5,6 +5,7 @@ const path = require('path');
 
 const { runMigrations } = require('./db/migrate');
 const { ensureBaseData } = require('./scripts/bootstrap');
+const { backfillScriptDocs } = require('./scripts/backfill-script-docs');
 const { ValidationError } = require('./lib/validate');
 const events = require('./lib/events');
 const { UPLOADS_DIR } = require('./middleware/upload');
@@ -22,6 +23,12 @@ const eventsRoutes = require('./routes/events');
 // O banco é migrado e preparado antes de qualquer requisição.
 runMigrations({ silent: process.env.NODE_ENV === 'test' });
 ensureBaseData();
+
+// Roteiros escritos antes da geração automática ganham o documento aqui.
+// Roda em segundo plano para não atrasar a subida do servidor.
+backfillScriptDocs({ silent: process.env.NODE_ENV === 'test' }).catch((err) =>
+  console.error('[backfill] não foi possível gerar documentos pendentes:', err.message)
+);
 
 const app = express();
 const PORT = process.env.PORT || 4100;

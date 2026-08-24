@@ -23,13 +23,31 @@ function fileSizeLabel(bytes) {
  * Documento .docx do roteiro, gerado pelo sistema a cada salvamento.
  * Não há botão de "gerar": ele acompanha o texto automaticamente.
  */
-function ScriptDocument({ video, saving, hasScript }) {
+function ScriptDocument({ video, saving, hasScript, onGenerate, generating }) {
   if (!video.script_doc_url) {
     if (!hasScript) return null;
+
+    // Enquanto o roteiro está sendo salvo, o documento vem logo atrás.
+    if (saving || generating) {
+      return (
+        <div className="script-doc is-pending">
+          <Loader2 size={15} className="spin" />
+          <span className="small">Gerando o documento do roteiro…</span>
+        </div>
+      );
+    }
+
+    // Roteiro salvo mas sem documento: acontece com textos escritos antes
+    // desta funcionalidade. Um clique resolve, sem precisar reeditar o texto.
     return (
       <div className="script-doc is-pending">
-        <Loader2 size={15} className="spin" />
-        <span className="small">Gerando o documento do roteiro…</span>
+        <FileText size={16} strokeWidth={1.75} />
+        <span className="script-doc-info">
+          <span className="small">Este roteiro ainda não tem documento.</span>
+        </span>
+        <button type="button" className="btn btn-secondary btn-sm" onClick={onGenerate}>
+          Gerar agora
+        </button>
       </div>
     );
   }
@@ -75,6 +93,7 @@ export default function VideoCard({ video, index, total, onChanged, onRemove, on
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  const [generatingDoc, setGeneratingDoc] = useState(false);
   const fileRef = useRef(null);
   const dirty = useRef(false);
   const savedTimer = useRef(null);
@@ -112,6 +131,20 @@ export default function VideoCard({ video, index, total, onChanged, onRemove, on
   function update(key, value) {
     dirty.current = true;
     setDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  /** Salva o roteiro como está, o que faz o servidor gerar o documento. */
+  async function generateDoc() {
+    setGeneratingDoc(true);
+    try {
+      const { data } = await api.put(`/videos/${video.id}`, draft);
+      onChanged?.(data);
+      toast.success('Documento do roteiro gerado.');
+    } catch (err) {
+      toast.error(errorMessage(err, 'Não foi possível gerar o documento.'));
+    } finally {
+      setGeneratingDoc(false);
+    }
   }
 
   async function toggleDone(done) {
@@ -285,7 +318,13 @@ export default function VideoCard({ video, index, total, onChanged, onRemove, on
             automaticamente.
           </span>
 
-          <ScriptDocument video={video} saving={saveState === 'saving'} hasScript={Boolean(draft.script.trim())} />
+          <ScriptDocument
+            video={video}
+            saving={saveState === 'saving'}
+            hasScript={Boolean(draft.script.trim())}
+            onGenerate={generateDoc}
+            generating={generatingDoc}
+          />
         </div>
 
         <Field label="Observações" hint="Opcional" htmlFor={`notes-${video.id}`}>

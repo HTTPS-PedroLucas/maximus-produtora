@@ -14,7 +14,8 @@
     "seed": "node src/scripts/seed.js",
     "seed:demo": "node src/scripts/seed-demo.js",
     "test": "node --test \"tests/**/*.test.js\"",
-    "backup": "node src/scripts/backup.js"
+    "backup": "node src/scripts/backup.js",
+    "backfill:scripts": "node src/scripts/backfill-script-docs.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
